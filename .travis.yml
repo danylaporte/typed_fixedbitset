@@ -6,4 +6,6 @@ matrix:
     - rust: beta
     - rust: nightly
 script:
-  - cargo test --verbose
+  - |
+    cargo test --verbose &&
+    cargo test --verbose --features serde

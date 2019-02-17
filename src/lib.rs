@@ -222,7 +222,7 @@ where
     where
         S: serde::ser::Serializer,
     {
-        self.0
+        self.set
             .ones()
             .map(|index| index.into())
             .collect::<Vec<K>>()
