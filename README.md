@@ -2,6 +2,9 @@
 
 A typed bitset container for Rust.
 
+## Documentation
+[API Documentation](https://danylaporte.github.io/typed_fixedbitset/typed_fixedbitset)
+
 ## Example
 
 ```rust
