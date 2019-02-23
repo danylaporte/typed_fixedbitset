@@ -22,7 +22,7 @@
 //!     }
 //! }
 //! ```
-use fixedbitset::FixedBitSet;
+use fixedbitset::{FixedBitSet, Ones};
 use std::iter::FromIterator;
 use std::marker::PhantomData;
 use std::ops::Index;
@@ -40,8 +40,6 @@ pub struct TypedFixedBitSet<K> {
 }
 
 impl<K> Default for TypedFixedBitSet<K>
-where
-    K: Into<usize>,
 {
     #[inline]
     fn default() -> Self {
@@ -50,8 +48,6 @@ where
 }
 
 impl<K> TypedFixedBitSet<K>
-where
-    K: Into<usize>,
 {
     /// Create a new **TypedFixedBitSet** with a specific number of bits,
     /// all initially clear.
@@ -70,20 +66,20 @@ where
         self.set.grow(bits)
     }
 
-    /// Return the length of the `FixedBitSet` in bits.
+    /// Return the length of the `TypedFixedBitSet` in bits.
     #[inline]
     pub fn len(&self) -> usize {
         self.set.len()
     }
 
-    /// Return **true** if the bit is enabled in the **FixedBitSet**,
+    /// Return **true** if the bit is enabled in the **TypedFixedBitSet**,
     /// **false** otherwise.
     ///
     /// Note: k outside the capacity are always disabled.
     ///
     /// Note: Also available with index syntax: `bitset[k]`.
     #[inline]
-    pub fn contains(&self, k: K) -> bool {
+    pub fn contains(&self, k: K) -> bool where K: Into<usize> {
         self.set.contains(k.into())
     }
 
@@ -98,29 +94,50 @@ where
     ///
     /// **Panics** if **k** is out of bounds.
     #[inline]
-    pub fn insert(&mut self, k: K) {
+    pub fn insert(&mut self, k: K) where K: Into<usize> {
         self.set.insert(k.into());
         self.is_empty = false;
     }
 
-    /// Return true if all the bit in the set are **false**.
+    /// Returns true if all the bit in the set are **false**.
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.is_empty
+    }
+
+    /// Returns an iterator of all K enabled in the set.
+    /// 
+    /// # Example
+    /// ```
+    /// use typed_fixedbitset::TypedFixedBitSet;
+    /// 
+    /// let mut set = TypedFixedBitSet::with_capacity(2);
+    /// 
+    /// set.insert(1);
+    /// 
+    /// let vec: Vec<_> = set.iter().collect();
+    /// assert_eq!(vec![1], vec);
+    /// ```
+    #[inline]
+    pub fn iter(&self) -> Iter<K>
+    where
+        K: From<usize>,
+    {
+        Iter(self.set.ones(), PhantomData)
     }
 
     /// Enable `bit`, and return its previous value.
     ///
     /// **Panics** if **k** is out of bounds.
     #[inline]
-    pub fn put(&mut self, k: K) -> bool {
+    pub fn put(&mut self, k: K) -> bool where K: Into<usize>  {
         let v = self.set.put(k.into());
         self.is_empty = false;
         v
     }
 
     /// **Panics** if **bit** is out of bounds.
-    pub fn set(&mut self, k: K, enabled: bool) {
+    pub fn set(&mut self, k: K, enabled: bool) where K: Into<usize> {
         self.set.set(k.into(), enabled);
         if enabled {
             self.is_empty = false;
@@ -145,7 +162,7 @@ impl<K> Clone for TypedFixedBitSet<K> {
 /// or **false** otherwise.
 ///
 /// Note: bits outside the capacity are always disabled, and thus
-/// indexing a FixedBitSet will not panic.
+/// indexing a TypedFixedBitSet will not panic.
 impl<K> Index<K> for TypedFixedBitSet<K>
 where
     K: Into<usize>,
@@ -176,7 +193,7 @@ where
     }
 }
 
-/// Return a FixedBitSet containing bits set to **true** for every bit index in
+/// Return a TypedFixedBitSet containing bits set to **true** for every bit index in
 /// the iterator, other bits are set to **false**.
 impl<K> FromIterator<K> for TypedFixedBitSet<K>
 where
@@ -195,6 +212,18 @@ where
             is_empty,
             set,
         }
+    }
+}
+
+impl<'a, K> std::iter::IntoIterator for &'a TypedFixedBitSet<K>
+where
+    K: From<usize>,
+{
+    type Item = K;
+    type IntoIter = Iter<'a, K>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
 
@@ -227,5 +256,25 @@ where
             .map(|index| index.into())
             .collect::<Vec<K>>()
             .serialize(serializer)
+    }
+}
+
+/// An iterator producing the types in a set.
+///
+/// This struct is created by the [`TypedFixedBitSet::iter`] method.
+pub struct Iter<'a, K>(Ones<'a>, PhantomData<K>);
+
+impl<'a, K> Iterator for Iter<'a, K>
+where
+    K: From<usize>,
+{
+    type Item = K;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.0.next() {
+            Some(item) => Some(item.into()),
+            None => None,
+        }
     }
 }
