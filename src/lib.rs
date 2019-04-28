@@ -41,7 +41,6 @@ pub struct TypedFixedBitSet<K> {
 
 impl<K> Default for TypedFixedBitSet<K>
 {
-    #[inline]
     fn default() -> Self {
         TypedFixedBitSet::with_capacity(0)
     }
@@ -51,7 +50,6 @@ impl<K> TypedFixedBitSet<K>
 {
     /// Create a new **TypedFixedBitSet** with a specific number of bits,
     /// all initially clear.
-    #[inline]
     pub fn with_capacity(bits: usize) -> Self {
         TypedFixedBitSet {
             _k: PhantomData,
@@ -61,7 +59,6 @@ impl<K> TypedFixedBitSet<K>
     }
 
     /// Grow capacity to **bits**, all new bits initialized to zero
-    #[inline]
     pub fn grow(&mut self, bits: usize) {
         self.set.grow(bits)
     }
@@ -84,7 +81,6 @@ impl<K> TypedFixedBitSet<K>
     }
 
     /// Clear all bits.
-    #[inline]
     pub fn clear(&mut self) {
         self.set.clear();
         self.is_empty = true;
@@ -93,7 +89,6 @@ impl<K> TypedFixedBitSet<K>
     /// Enable `bit`.
     ///
     /// **Panics** if **k** is out of bounds.
-    #[inline]
     pub fn insert(&mut self, k: K) where K: Into<usize> {
         self.set.insert(k.into());
         self.is_empty = false;
@@ -118,7 +113,6 @@ impl<K> TypedFixedBitSet<K>
     /// let vec: Vec<_> = set.iter().collect();
     /// assert_eq!(vec![1], vec);
     /// ```
-    #[inline]
     pub fn iter(&self) -> Iter<K>
     where
         K: From<usize>,
@@ -148,7 +142,6 @@ impl<K> TypedFixedBitSet<K>
 }
 
 impl<K> Clone for TypedFixedBitSet<K> {
-    #[inline]
     fn clone(&self) -> Self {
         TypedFixedBitSet {
             set: self.set.clone(),
