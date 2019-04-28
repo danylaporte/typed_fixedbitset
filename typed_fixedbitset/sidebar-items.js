@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Iter","An iterator producing the types in a set."],["TypedFixedBitSet","`TypedFixedBitSet` is a simple fixed size set of bits that each can be enabled (1 / true) or disabled (0 / false)."]]});
